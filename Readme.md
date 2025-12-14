@@ -376,21 +376,6 @@ XGBSurvival(
 1. **Imputation**: Most frequent category
 2. **Encoding**: One-hot encoding (drop first category to avoid multicollinearity)
 
-**Pipeline Structure:**
-```python
-ColumnTransformer(
-    transformers=[
-        ('num', Pipeline([
-            ('imputer', SimpleImputer(strategy='median')),
-            ('scaler', StandardScaler())
-        ]), numerical_features),
-        ('cat', Pipeline([
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('encoder', OneHotEncoder(drop='first', handle_unknown='ignore'))
-        ]), categorical_features)
-    ]
-)
-```
 
 ---
 
@@ -436,10 +421,7 @@ The training pipeline orchestrates the entire model development process:
 ### Running the Pipeline
 
 ```bash
-python training_metabrick.py --data_path data/metabric.csv \
-                            --output_dir models/ \
-                            --test_size 0.2 \
-                            --random_seed 42
+python training_metabrick.py 
 ```
 
 **Command-line Arguments:**
@@ -448,26 +430,12 @@ python training_metabrick.py --data_path data/metabric.csv \
 - `--test_size`: Fraction for test set (default: 0.2)
 - `--random_seed`: Reproducibility seed (default: 42)
 
-### Output Artifacts
 
-Saved in `models/` directory:
-
-```
-models/
-├── os_model.xgb              # Overall Survival Cox model
-├── rfs_model.xgb             # Relapse-Free Survival Cox model
-├── preprocessor.pkl          # Fitted preprocessing pipeline
-├── shap_explainer.pkl        # SHAP TreeExplainer
-├── improvement_analyzer.pkl  # Counterfactual analyzer
-└── training_metadata.json    # Feature names, shapes, statistics
-```
 
 ### Validation Metrics
 
 The pipeline reports:
 - **C-index** (Concordance Index): Discrimination ability
-- **Brier Score**: Calibration at 1, 2, 5 years
-- **Integrated Brier Score**: Overall calibration
 - **Feature importance**: Top contributing variables
 
 ---
@@ -479,7 +447,7 @@ The pipeline reports:
 **Technologies:**
 - HTML5 for structure
 - CSS3 for styling (responsive design)
-- Vanilla JavaScript for interactivity
+-  JavaScript for interactivity
 
 **Features:**
 - Drag-and-drop file upload
@@ -771,7 +739,7 @@ scipy==1.11.1
 #### 5. Train Models
 
 ```bash
-python training_metabric.py 
+python train_metabric.py 
 ```
 
 **Expected output:**
@@ -815,4 +783,5 @@ python app.py
 **Access application:**
 - Open browser to `http://localhost:5000`
 - Upload files and run analysis
+
 
