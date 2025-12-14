@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Tumor Progression Research Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .sidebar h2 {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background: white;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-input-label.has-file {
+            border-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .plots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .plot-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .plot-container img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .welcome h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .welcome p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Breast Cancer Tumor Progression Analysis</h1>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <h2>Patient Simulation Input</h2>
+                
+                <div class="upload-section">
+                    <label>Longitudinal Tumor Sequence (.npy)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="sequenceFile" accept=".npy">
+                        <label for="sequenceFile" class="file-input-label" id="sequenceLabel">
+                            Choose file...
+                        </label>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <label>Patient Snapshot (.csv)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="patientFile" accept=".csv">
+                        <label for="patientFile" class="file-input-label" id="patientLabel">
+                            Choose file...
+                        </label>
+                    </div>
+                </div>
+
+                <button class="analyze-btn" id="analyzeBtn" disabled>
+                    Run Disease Progression Analysis
+                </button>
+            </div>
+
+            <div class="main-content">
+                <div class="welcome" id="welcome">
+                    <h2>Welcome to the Research Portal</h2>
+                    <p>Upload a longitudinal tumor sequence (.npy) and a patient snapshot (.csv) to begin the analysis.</p>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing analysis... This may take a moment.</p>
+                </div>
+
+                <div class="error-message alert alert-error" id="errorMessage"></div>
+
+                <div class="results" id="results">
+                    <div class="section">
+                        <h2 class="section-title">AI Disease Progression Prediction</h2>
+                        <div class="metrics" id="transformerMetrics"></div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Longitudinal Survival Estimation</h2>
+                        <div class="plots" id="survivalPlots"></div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">1-Year / 2-Year / 5-Year Risk Estimates</h2>
+                        <table id="riskTable"></table>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Estimated Risk Timing (Model-Based)</h2>
+                        <div id="riskTiming"></div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Feature Contribution Analysis (Model Explainability)</h2>
+                        <h3 style="margin: 20px 0 15px 0; color: #555;">Top Risk-Contributing Factors</h3>
+                        <table id="featuresTable"></table>
+                        
+                        <h3 style="margin: 30px 0 15px 0; color: #555;">Contribution to Mortality Risk</h3>
+                        <div class="plot-container">
+                            <img id="shapPlot" alt="SHAP Plot">
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Hypothetical Survival Improvement Analysis (Research-Only)</h2>
+                        <table id="improvementTable"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <strong>Disclaimer:</strong> This platform is a research-only system for studying breast cancer tumor evolution.
+            It does not provide clinical diagnosis or treatment recommendations.
+        </div>
+    </div>
+
+    <script>
+        const sequenceFile = document.getElementById('sequenceFile');
+        const patientFile = document.getElementById('patientFile');
+        const sequenceLabel = document.getElementById('sequenceLabel');
+        const patientLabel = document.getElementById('patientLabel');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const welcome = document.getElementById('welcome');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+
+        sequenceFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                sequenceLabel.textContent = e.target.files[0].name;
+                sequenceLabel.classList.add('has-file');
+            }
+            checkFiles();
+        });
+
+        patientFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                patientLabel.textContent = e.target.files[0].name;
+                patientLabel.classList.add('has-file');
+            }
+            checkFiles();
+        });
+
+        function checkFiles() {
+            if (sequenceFile.files.length > 0 && patientFile.files.length > 0) {
+                analyzeBtn.disabled = false;
+            } else {
+                analyzeBtn.disabled = true;
+            }
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            console.log('Analysis started...');
+            welcome.classList.remove('show');
+            loading.classList.add('show');
+            results.classList.remove('show');
+            errorMessage.classList.remove('show');
+            analyzeBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('sequence_file', sequenceFile.files[0]);
+            formData.append('patient_file', patientFile.files[0]);
+
+            console.log('Files:', {
+                sequence: sequenceFile.files[0].name,
+                patient: patientFile.files[0].name
+            });
+
+            try {
+                console.log('Sending request to /analyze...');
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data received');
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+
+                console.log('Displaying results...');
+                displayResults(data);
+                loading.classList.remove('show');
+                results.classList.add('show');
+                console.log('Analysis complete!');
+            } catch (error) {
+                console.error('Analysis error:', error);
+                loading.classList.remove('show');
+                errorMessage.textContent = `Error: ${error.message}`;
+                errorMessage.classList.add('show');
+                
+                // Show more details in console
+                console.error('Full error details:', error);
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            // Transformer predictions
+            const metrics = document.getElementById('transformerMetrics');
+            metrics.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Aggregate Death Probability</div>
+                    <div class="metric-value">${data.transformer_predictions.death_prob}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Aggregate Survival Probability</div>
+                    <div class="metric-value">${data.transformer_predictions.survival_prob}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Aggregate Recurrence Probability</div>
+                    <div class="metric-value">${data.transformer_predictions.recurrence_prob}</div>
+                </div>
+            `;
+
+            // Survival plots
+            const plots = document.getElementById('survivalPlots');
+            plots.innerHTML = `
+                <div class="plot-container">
+                    <h3 style="margin-bottom: 15px;">Overall Survival</h3>
+                    <img src="data:image/png;base64,${data.survival_plots.os_plot}" alt="Overall Survival">
+                </div>
+                <div class="plot-container">
+                    <h3 style="margin-bottom: 15px;">Relapse-Free Survival</h3>
+                    <img src="data:image/png;base64,${data.survival_plots.rfs_plot}" alt="Relapse-Free Survival">
+                </div>
+            `;
+
+            // Risk estimates table
+            const riskTable = document.getElementById('riskTable');
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>Time Horizon</th>
+                        <th>Survival Probability</th>
+                        <th>Death Probability</th>
+                        <th>Recurrence Probability</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            data.risk_estimates.forEach(row => {
+                tableHTML += `
+                    <tr>
+                        <td>${row.time_horizon}</td>
+                        <td>${row.survival_prob}</td>
+                        <td>${row.death_prob}</td>
+                        <td>${row.recurrence_prob}</td>
+                    </tr>
+                `;
+            });
+            tableHTML += '</tbody>';
+            riskTable.innerHTML = tableHTML;
+
+            // Risk timing
+            const riskTiming = document.getElementById('riskTiming');
+            riskTiming.innerHTML = `
+                <div class="alert alert-${data.risk_timing.early_risk_status}">
+                    ${data.risk_timing.early_risk_status === 'warning' ? '⚠️' : '✓'} 
+                    Elevated mortality risk: ${data.risk_timing.early_risk}
+                </div>
+                <div class="alert alert-${data.risk_timing.median_risk_status}">
+                    ${data.risk_timing.median_risk_status === 'error' ? '🔴' : '✓'} 
+                    Median mortality risk (~50%): ${data.risk_timing.median_risk}
+                </div>
+            `;
+
+            // Features table
+            const featuresTable = document.getElementById('featuresTable');
+            let featTableHTML = `
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Observed Value</th>
+                        <th>SHAP Contribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            data.explainability.features.forEach(feat => {
+                featTableHTML += `
+                    <tr>
+                        <td>${feat.name}</td>
+                        <td>${feat.value}</td>
+                        <td>${feat.shap_value_formatted}</td>
+                    </tr>
+                `;
+            });
+            featTableHTML += '</tbody>';
+            featuresTable.innerHTML = featTableHTML;
+
+            // SHAP plot
+            document.getElementById('shapPlot').src = `data:image/png;base64,${data.explainability.shap_plot}`;
+
+            // Improvement table
+            const improvementTable = document.getElementById('improvementTable');
+            if (data.improvements.length > 0) {
+                let impTableHTML = `
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Hypothetical Adjustment</th>
+                            <th>5-Year Survival Gain</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+                data.improvements.forEach(imp => {
+                    impTableHTML += `
+                        <tr>
+                            <td>${imp.Feature}</td>
+                            <td>${imp["Hypothetical Adjustment"]}</td>
+                            <td>${imp["5-Year Survival Gain"]}</td>
+                        </tr>
+                    `;
+                });
+                impTableHTML += '</tbody>';
+                improvementTable.innerHTML = impTableHTML;
+            } else {
+                improvementTable.innerHTML = '<tbody><tr><td colspan="3" class="alert alert-info">No modifiable features identified with sufficient risk contribution for counterfactual analysis.</td></tr></tbody>';
+            }
+        }
+    </script>
+</body>
+</html>
